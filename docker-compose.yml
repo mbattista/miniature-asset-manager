@@ -1,0 +1,57 @@
+version: '3.2'
+
+services:
+  app:
+    container_name: asset
+    build:
+      context: .
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/var/www/html
+    environment:
+      KUNDENLOGIN_DATABASE_PASSWORD: magicdockerpostgres
+      KUNDENLOGIN_DATABASE_HOST: asset_database
+      KUNDENLOGIN_DATABASE_NAME: postgres
+      KUNDENLOGIN_DATABASE_USER: postgres
+      APPLICATION_HOST: asset
+      APPLICATION_ENV: ${APPLICATION_ENV}
+    depends_on:
+      - database
+    networks:
+      asset_net:
+        aliases:
+          - asset.manager
+
+
+  database:
+    container_name: asset_database
+    image: postgres:12
+    restart: always
+    ports:
+      - 3456:5432
+    environment:
+      POSTGRES_PASSWORD: magicdockerpostgres
+    networks:
+      asset_net:
+        aliases:
+          - asset.manager
+
+  database_admin:
+    container_name: asset_database_admin
+    image: dpage/pgadmin4
+    restart: always
+    ports:
+      - 8084:80
+    environment:
+      PGADMIN_DEFAULT_EMAIL: t@example.com
+      PGADMIN_DEFAULT_PASSWORD: magicdockerpostgres
+
+
+networks:
+  asset_net:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.16.107.0/24
